@@ -48,7 +48,7 @@ namespace MoralBar
             Color moralBarBackColour = Color.FromArgb(50, 220, 162, 206);
 
             moralBarColourNormal = Color.FromArgb(150, 220, 162, 206);
-            //moralBarColourWarning = Color.FromArgb(255, 255, 245, 220);
+            moralBarColourWarning = Color.FromArgb(255, 255, 245, 220);
 
             moralBarBackdrop = new Rectangle(moralBarBackdropPosition, moralBarBackdropSize, moralBarBackdropColour);
             moralBarBack = new Rectangle(moralBarBackPosition, moralBarBackSize, moralBarBackColour);
@@ -63,12 +63,40 @@ namespace MoralBar
 
         public void RenderBar(float moralLevel)
         {
-            float moralBarPercentage = (100f / 100f) * moralLevel;
+            float moralBarPercentage = moralLevel;
             PointF safezoneBounds = HUD.GetSafezoneBounds();
 
             Position = new PointF(basePosition.X + safezoneBounds.X, basePosition.Y - safezoneBounds.Y);
 
             moralBar.Size = new SizeF(moralBarWidth / 100f * moralBarPercentage, moraBarHeight);
+
+            if (moralLevel < 15f)
+            {
+                if (moralBarColorTween.State == TweenState.Stopped)
+                {
+                    moralBarAnimationDir = !moralBarAnimationDir;
+
+                    moralBarColorTween.Start(
+                      moralBarAnimationDir ? 100f : 255f,
+                      moralBarAnimationDir ? 255f : 100f,
+                      .5f, // seconds
+                      ScaleFuncs.QuarticEaseOut
+                    );
+                }
+
+                moralBarColorTween.Update(Game.LastFrameTime);
+
+                moralBar.Color = Color.FromArgb((int)Math.Floor(moralBarColorTween.CurrentValue), moralBarColourWarning);
+            }
+            else
+            {
+                moralBar.Color = moralBarColourNormal;
+
+                if (moralBarColorTween.State != TweenState.Stopped)
+                {
+                    moralBarColorTween.Stop(StopBehavior.ForceComplete);
+                }
+            }
 
             moralBarBackdrop.Draw();
             moralBarBack.Draw();

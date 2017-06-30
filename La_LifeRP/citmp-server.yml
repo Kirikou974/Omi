@@ -23,7 +23,7 @@ AutoStartResources:
     - vdk_call
     - salaire
     - banking
-    #- foodhud
+    - foodhud
     - moralbar
     #- lscustoms
     - loadingscreen
