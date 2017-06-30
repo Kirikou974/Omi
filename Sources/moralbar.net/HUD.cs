@@ -5,7 +5,7 @@ using System;
 using System.Drawing;
 using TinyTween;
 
-namespace Moralhud
+namespace MoralBar
 {
     public class HUD
     {

@@ -1,11 +1,10 @@
 ﻿using CitizenFX.Core;
-using CitizenFX.Core.UI;
 using System;
 using System.Threading.Tasks;
 
-namespace Moralhud
+namespace MoralBar
 {
-    public class Moralhud : BaseScript
+    public class MoralBarHud : BaseScript
     {
 
         //private bool isHavingFun;
@@ -13,7 +12,7 @@ namespace Moralhud
         public HUD hud;
         public Random random = new Random();
 
-        public Moralhud()
+        public MoralBarHud()
         {
             Tick += OnTick;
             hud = new HUD();
