@@ -9,56 +9,138 @@ namespace MoralBar
 {
     public class HUD
     {
-        protected Scaleform buttons = new Scaleform("instructional_buttons");
-        protected float moralBarWidth = 180f;
-        protected float moraBarHeight = 6f;
+        private float _warningLevel;
+        private Config _hudConfig;
+        private Rectangle _moralBarBackdrop;
+        private Rectangle _moralBarBack;
+        private Rectangle _moralBar;
 
+        protected Scaleform buttons = new Scaleform(Helpers.GenericConfig.INSTRUCTIONAL_BUTTONS);
+      
         protected Color moralBarColourNormal;
         protected Color moralBarColourWarning;
-
-        protected Rectangle moralBarBackdrop;
-        protected Rectangle moralBarBack;
-        protected Rectangle moralBar;
-        
         protected Tween<float> moralBarColorTween = new FloatTween();
         protected bool moralBarAnimationDir = true;
-        protected PointF basePosition = new PointF(0f, 539f);
+        protected PointF basePosition;
+
+        public float MoralBarPositionX
+        {
+            get
+            {
+                return Helpers.StrToFloat(HUDConfig.Get(Helpers.HUDConfig.POSITIONX, "0"));
+            }
+        }
+
+        public float MoralBarPositionY
+        {
+            get
+            {
+                return Helpers.StrToFloat(HUDConfig.Get(Helpers.HUDConfig.POSITIONY, "0"));
+            }
+        }
+
+        public float MoralBarWidth
+        {
+            get
+            {
+                return Helpers.StrToFloat(HUDConfig.Get(Helpers.HUDConfig.WIDTH, Helpers.HUDConfig.WIDTH_DEFAULT));
+            }
+        }
+
+        public float MoralBarHeight
+        {
+            get
+            {
+                return Helpers.StrToFloat(HUDConfig.Get(Helpers.HUDConfig.HEIGHT, Helpers.HUDConfig.HEIGHT_DEFAULT));
+            }
+        }
 
         public PointF Position
         {
             set
             {
-                moralBarBackdrop.Position = value;
-                moralBarBack.Position = new PointF(value.X, value.Y + 3f);
-                moralBar.Position = moralBarBack.Position;
+                _moralBarBackdrop.Position = value;
+                _moralBarBack.Position = new PointF(value.X, value.Y + 3f);
+                _moralBar.Position = _moralBarBack.Position;
             }
         }
 
-        public HUD()
+        public float WarningLevel
         {
+            get
+            {
+                return _warningLevel;
+            }
+            set
+            {
+                _warningLevel = value;
+            }
+        }
+
+        public Config HUDConfig
+        {
+            get
+            {
+                return _hudConfig;
+            }
+            set
+            {
+                _hudConfig = value;
+            }
+        }
+
+        private void LoadHUDConfig()
+        {
+            HUDConfig = Helpers.GetConfig(Helpers.HUDConfig.CONFIG_FILE_NAME);
+        }
+
+        public HUD(float warningLevel)
+        {
+            LoadHUDConfig();
+
+            basePosition = new PointF(MoralBarPositionX, MoralBarPositionY);
+            WarningLevel = warningLevel;
+
             PointF moralBarBackdropPosition = basePosition;
-            PointF moralBarBackPosition = new PointF(moralBarBackdropPosition.X, moralBarBackdropPosition.Y + 3f);
+            float offset = Helpers.StrToFloat(HUDConfig.Get(Helpers.HUDConfig.OFFSET, Helpers.HUDConfig.OFFSET_DEFAULT));
+
+            PointF moralBarBackPosition = new PointF(moralBarBackdropPosition.X, moralBarBackdropPosition.Y + offset);
             PointF moralBarPosition = moralBarBackPosition;
 
-            SizeF moralBarBackdropSize = new SizeF(moralBarWidth, 12f);
-            SizeF moralBarBackSize = new SizeF(moralBarWidth, moraBarHeight);
+            SizeF moralBarBackdropSize = new SizeF(MoralBarWidth, MoralBarHeight * 2);
+            SizeF moralBarBackSize = new SizeF(MoralBarWidth, MoralBarHeight);
             SizeF moralBarSize = moralBarBackSize;
 
             Color moralBarBackdropColour = Color.FromArgb(100, 0, 0, 0);
-            Color moralBarBackColour = Color.FromArgb(50, 220, 162, 206);
+            Color moralBarBackColour = GetNormalColour(50);
 
-            moralBarColourNormal = Color.FromArgb(150, 220, 162, 206);
-            moralBarColourWarning = Color.FromArgb(255, 255, 245, 220);
+            moralBarColourNormal = GetNormalColour(150);
+            moralBarColourWarning = GetWarningColour(255);
 
-            moralBarBackdrop = new Rectangle(moralBarBackdropPosition, moralBarBackdropSize, moralBarBackdropColour);
-            moralBarBack = new Rectangle(moralBarBackPosition, moralBarBackSize, moralBarBackColour);
-            moralBar = new Rectangle(moralBarPosition, moralBarSize, moralBarColourNormal);
+            _moralBarBackdrop = new Rectangle(moralBarBackdropPosition, moralBarBackdropSize, moralBarBackdropColour);
+            _moralBarBack = new Rectangle(moralBarBackPosition, moralBarBackSize, moralBarBackColour);
+            _moralBar = new Rectangle(moralBarPosition, moralBarSize, moralBarColourNormal);
         }
 
-        
+        private Color GetNormalColour(int alpha)
+        {
+            int red = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.NORMAL_COLOR_RED, "0"));
+            int green = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.NORMAL_COLOR_GREEN, "0"));
+            int blue = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.NORMAL_COLOR_BLUE, "0"));
+            return Color.FromArgb(alpha, red, green, blue);
+        }
+
+        private Color GetWarningColour(int alpha)
+        {
+            int red = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.WARNING_COLOR_RED, "0"));
+            int green = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.WARNING_COLOR_GREEN, "0"));
+            int blue = Convert.ToInt32(HUDConfig.Get(Helpers.HUDConfig.WARNING_COLOR_BLUE, "0"));
+            return Color.FromArgb(alpha, red, green, blue);
+        }
+
         public void ReloadScaleformMovie()
         {
-            buttons = new Scaleform("instructional_buttons");
+            buttons = new Scaleform(Helpers.GenericConfig.INSTRUCTIONAL_BUTTONS);
         }
 
         public void RenderBar(float moralLevel)
@@ -68,9 +150,9 @@ namespace MoralBar
 
             Position = new PointF(basePosition.X + safezoneBounds.X, basePosition.Y - safezoneBounds.Y);
 
-            moralBar.Size = new SizeF(moralBarWidth / 100f * moralBarPercentage, moraBarHeight);
+            _moralBar.Size = new SizeF(MoralBarWidth / 100f * moralBarPercentage, MoralBarHeight);
 
-            if (moralLevel < 15f)
+            if (moralLevel < WarningLevel)
             {
                 if (moralBarColorTween.State == TweenState.Stopped)
                 {
@@ -79,18 +161,18 @@ namespace MoralBar
                     moralBarColorTween.Start(
                       moralBarAnimationDir ? 100f : 255f,
                       moralBarAnimationDir ? 255f : 100f,
-                      .5f, // seconds
+                      .5f,
                       ScaleFuncs.QuarticEaseOut
                     );
                 }
 
                 moralBarColorTween.Update(Game.LastFrameTime);
 
-                moralBar.Color = Color.FromArgb((int)Math.Floor(moralBarColorTween.CurrentValue), moralBarColourWarning);
+                _moralBar.Color = Color.FromArgb((int)Math.Floor(moralBarColorTween.CurrentValue), moralBarColourWarning);
             }
             else
             {
-                moralBar.Color = moralBarColourNormal;
+                _moralBar.Color = moralBarColourNormal;
 
                 if (moralBarColorTween.State != TweenState.Stopped)
                 {
@@ -98,9 +180,9 @@ namespace MoralBar
                 }
             }
 
-            moralBarBackdrop.Draw();
-            moralBarBack.Draw();
-            moralBar.Draw();
+            _moralBarBackdrop.Draw();
+            _moralBarBack.Draw();
+            _moralBar.Draw();
         }
 
         public static PointF GetSafezoneBounds()

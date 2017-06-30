@@ -8,7 +8,6 @@ namespace MoralBar
 {
     public class MoralBarHud : BaseScript
     {
-
         //private bool isHavingFun;
         protected float moralLevel = 100f;
         protected Config Config
@@ -35,32 +34,27 @@ namespace MoralBar
 
         public MoralBarHud()
         {
-            Tick += OnTick;
-            hud = new HUD();
             LoadConfig();
+            Tick += OnTick;
+            float warningLevel = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.WARNING_LEVEL, Helpers.MoralBarConfig.WARNING_LEVEL_DEFAULT));
+            hud = new HUD(warningLevel);
         }
 
         protected void LoadConfig()
         {
-            string configContent = null;
-            try
-            {
-                configContent = Function.Call<string>(Hash.LOAD_RESOURCE_FILE, "moralbar", "config.ini");
-            }
-            catch (Exception)
-            {
-            }
-            Config = new Config(configContent);
+            Config = Helpers.GetConfig(Helpers.MoralBarConfig.CONFIG_FILE_NAME);
         }
 
         public void ConsumeMoral(Ped playerPed)
         {
             if (MoralLevel > 0f)
             {
-                MoralLevel -= StrToFloat(Config.Get("MoralFactor", "0.50030476")) * StrToFloat(Config.Get("GlobalMultiplier", "1.5"));
+                float moralFactor = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.FACTOR, Helpers.MoralBarConfig.FACTOR_DEFAULT));
+                float globalMultiplier = Helpers.StrToFloat(Config.Get(Helpers.GenericConfig.GLOBAL_MULTIPLIER, Helpers.GenericConfig.GLOBAL_MULTIPLIER_DEFAULT));
+                MoralLevel -= moralFactor * globalMultiplier;
                 return;
             }
-            if (Convert.ToBoolean(Config.Get("DeathFood", "true")))
+            if (Convert.ToBoolean(Config.Get(Helpers.MoralBarConfig.DEATH, Helpers.MoralBarConfig.DEATH_DEFAULT)))
             {
                 currentHealth += 0.01f;
                 if (currentHealth > 1f)
@@ -89,12 +83,6 @@ namespace MoralBar
             RenderUI(playerPed);
             await Task.FromResult(0);
         }
-
-        private float StrToFloat(string convStr)
-        {
-            return float.Parse(convStr, CultureInfo.InvariantCulture.NumberFormat);
-        }
-
     }
 }
 
