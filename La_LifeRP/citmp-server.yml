@@ -25,6 +25,7 @@ AutoStartResources:
     - banking
     - foodhud
     - moralbar
+    - positionhud
     #- lscustoms
     - loadingscreen
     - tradeIlegal
