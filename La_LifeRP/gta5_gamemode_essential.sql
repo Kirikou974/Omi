@@ -255,3 +255,16 @@ CREATE TABLE `user_weapons` (
 -- ----------------------------
 -- Records of user_weapons
 -- ----------------------------
+
+-- ----------------------------
+-- Table structure for coordinates
+-- ----------------------------
+
+DROP TABLE IF EXISTS `user_moral`;
+CREATE TABLE `user_moral` (
+  `identifier` varchar(30) CHARACTER SET utf8mb4 NOT NULL,
+  `moralLevel` double DEFAULT NULL,
+  PRIMARY KEY (`identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
