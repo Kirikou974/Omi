@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="FunPlace.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="HUD.cs" />
     <Compile Include="MoralBarHud.cs" />

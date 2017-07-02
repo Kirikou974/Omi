@@ -1,4 +1,5 @@
-﻿using CitizenFX.Core.Native;
+﻿using CitizenFX.Core;
+using CitizenFX.Core.Native;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -39,7 +40,14 @@ namespace MoralBar
             public const string DEATH_DEFAULT = "true";
             public const string WARNING_LEVEL = "WarningLevel";
             public const string WARNING_LEVEL_DEFAULT = "15";
-
+            public const string FUNPLACES= "FunPlaces";
+            public const string FUNPLACES_DEFAULT = "(X:0,Y:0,Z:0)";
+            public const string FUNPLACE_PRICE = "FunPlaceDefaultCost";
+            public const string FUNPLACE_PRICE_DEFAULT = "0";
+            public const string FUNPLACE_RAISE = "FunPlaceDefaultRaise";
+            public const string FUNPLACE_RAISE_DEFAULT = "0";
+            public const string FUNPLACE_WIDTH = "FunPlaceDefaultWidth";
+            public const string FUNPLACE_WIDTH_DEFAULT = "0";
         }
         public static class HUDConfig
         {
