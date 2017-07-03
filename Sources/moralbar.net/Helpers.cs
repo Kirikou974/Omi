@@ -40,7 +40,7 @@ namespace MoralBar
             public const string DEATH = "DeathMoral";
             public const string WARNING_LEVEL = "WarningLevel";
             public const string FUNPLACES= "FunPlaces";
-            public const string FUNPLACE_PRICE = "FunPlaceDefaultCost";
+            public const string FUNPLACE_PRICE = "FunPlaceDefaultPrice";
             public const string FUNPLACE_RAISE = "FunPlaceDefaultRaise";
             public const string FUNPLACE_WIDTH = "FunPlaceDefaultWidth";
             public const string HAVING_FUN_TEXT = "HavingFunText";
