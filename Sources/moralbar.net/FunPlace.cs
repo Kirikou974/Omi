@@ -1,5 +1,6 @@
 ﻿using CitizenFX.Core;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ namespace MoralBar
         public int Width { get; set; }
         public float MoralRaise { get; set; }
         public int MoralPrice { get; set; }
+        public int Speed { get; set; }
+        public int MoralTicks = 0;
 
         public FunPlace(float X, float Y, float Z, int? width = null, float? moralRaise = null, int? moralPrice = null)
         {
@@ -22,7 +25,7 @@ namespace MoralBar
             }
             else
             {
-                Width = Convert.ToInt32(config.Get(Helpers.MoralBarConfig.FUNPLACE_WIDTH, Helpers.MoralBarConfig.FUNPLACE_WIDTH_DEFAULT));
+                Width = Convert.ToInt32(config.Get(Helpers.MoralBarConfig.FUNPLACE_WIDTH, "0"));
             }
             if(moralRaise.HasValue)
             {
@@ -30,7 +33,7 @@ namespace MoralBar
             }
             else
             {
-                MoralRaise = Helpers.StrToFloat(config.Get(Helpers.MoralBarConfig.FUNPLACE_RAISE, Helpers.MoralBarConfig.FUNPLACE_RAISE_DEFAULT));
+                MoralRaise = Helpers.StrToFloat(config.Get(Helpers.MoralBarConfig.FUNPLACE_RAISE, "0"));
             }
             if (moralPrice.HasValue)
             { 
@@ -38,19 +41,18 @@ namespace MoralBar
             }
             else
             {
-                MoralPrice = Convert.ToInt32(config.Get(Helpers.MoralBarConfig.FUNPLACE_PRICE, Helpers.MoralBarConfig.FUNPLACE_PRICE_DEFAULT));
+                MoralPrice = Convert.ToInt32(config.Get(Helpers.MoralBarConfig.FUNPLACE_PRICE, "0"));
             }
         }
 
-
-        public static FunPlace[] GetFunPlaceListFromString(string vectorsString)
+        public static List<FunPlace> GetFunPlaceListFromString(string vectorsString)
         {
-            FunPlace[] funPlaces = { };
+            List<FunPlace> funPlaces = new List<FunPlace>();
             string[] vectorStringArray = vectorsString.Split('|');
 
             foreach (string vectorString in vectorStringArray)
             {
-                funPlaces[0] = GetFunPlaceFromString(vectorString);
+                funPlaces.Add(GetFunPlaceFromString(vectorString));
             }
 
             return funPlaces;
@@ -90,7 +92,7 @@ namespace MoralBar
                     case "Width":
                         width = Convert.ToInt32(value);
                         break;
-                    case "Factor":
+                    case "Raise":
                         raise = Helpers.StrToFloat(value);
                         break;
                     default:

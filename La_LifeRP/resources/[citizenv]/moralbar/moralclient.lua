@@ -1,0 +1,5 @@
+AddEventHandler('playerSpawned', function(spawn)
+	Citizen.CreateThread(function()
+		TriggerServerEvent("moralbar:getMoral")
+	end)
+end)

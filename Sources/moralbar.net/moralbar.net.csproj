@@ -32,10 +32,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CitizenFX.Core">
-      <HintPath>..\..\..\ProjectRefs\CitizenFX.Core.dll</HintPath>
+      <HintPath>..\..\References\CitizenFX.Core.dll</HintPath>
     </Reference>
     <Reference Include="NativeUI">
-      <HintPath>..\..\..\ProjectRefs\NativeUI.dll</HintPath>
+      <HintPath>..\..\References\NativeUI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -71,6 +71,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /y "$(TargetDir)" "E:\Jeux\PC\GTA5\Omi_La_LifeRP\La_LifeRP\resources\[citizenv]\moralbar"</PostBuildEvent>
+    <PostBuildEvent>copy /y "$(TargetDir)" "..\..\..\..\La_LifeRP\resources\[citizenv]\moralbar"</PostBuildEvent>
   </PropertyGroup>
 </Project>

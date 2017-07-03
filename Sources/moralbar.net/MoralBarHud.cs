@@ -11,6 +11,11 @@ namespace MoralBar
         private int _tick = 0;
         private bool _moralInitialized = false;
 
+        public int SaveFrequency
+        {
+            get;
+            set;
+        }
         public Config Config
         {
             get;
@@ -47,11 +52,17 @@ namespace MoralBar
             get;
             set;
         }
-        public FunPlace[] FunPlaces
+
+        public enum MoralState
         {
-            get;
-            set;
+            Idle = 1,
+            Raising = 2,
+            Decreasing = 3
         }
+
+        public MoralState State = MoralState.Idle;
+
+        public List<FunPlace> FunPlaces = new List<FunPlace>();
         public FunPlace ActiveFunPlace
         {
             get;
@@ -62,21 +73,26 @@ namespace MoralBar
         public MoralBarHud()
         {
             Config = Helpers.GetConfig(Helpers.MoralBarConfig.CONFIG_FILE_NAME);
-            float warningLevel = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.WARNING_LEVEL, Helpers.MoralBarConfig.WARNING_LEVEL_DEFAULT));
+            float warningLevel = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.WARNING_LEVEL, "15"));
+            SaveFrequency = Convert.ToInt32(Config.Get(Helpers.MoralBarConfig.SAVE_FREQUENCY, "3600"));
             Hud = new HUD(warningLevel);
 
             FunPlaceEntered = false;
             FunPlaceExited = true;
 
-
-            //TODO change. Doesn't work
-            FunPlaces = FunPlace.GetFunPlaceListFromString(Config.Get(Helpers.MoralBarConfig.FUNPLACES, Helpers.MoralBarConfig.FUNPLACES_DEFAULT));
+            FunPlaces = FunPlace.GetFunPlaceListFromString(Config.Get(Helpers.MoralBarConfig.FUNPLACES, "(X:0,Y:0,Z:0)"));
 
             EventHandlers["moralbar:moralResult"] += new Action<dynamic>((dynamic res) =>
             {
                 MoralLevel = res;
+                MoralInitialized = true;
             });
-            
+
+            EventHandlers["playerSpawned"] += new Action<dynamic>((dynamic res) =>
+            {
+                TriggerServerEvent("moralbar:getMoral");
+            });
+
             Tick += OnTick;
         }
 
@@ -84,6 +100,7 @@ namespace MoralBar
         {
             bool returnValue = false;
             Vector3 playerVector = new Vector3(playerPed.Position.X, playerPed.Position.Y, playerPed.Position.Z);
+
             foreach (FunPlace funplace in FunPlaces)
             {
                 if (Vector3.DistanceSquared(funplace.Vector, playerVector) <= funplace.Width)
@@ -96,56 +113,95 @@ namespace MoralBar
 
             return returnValue;
         }
-        
+
         public void ConsumeMoral(Ped playerPed)
         {
-            bool isPlayerNearFunPlace = false;// IsPlayerNearFunPlace(playerPed);
+            bool isPlayerNearFunPlace = IsPlayerNearFunPlace(playerPed);
+            HandleMoralState(isPlayerNearFunPlace);
+            float globalMultiplier = Helpers.StrToFloat(Config.Get(Helpers.GenericConfig.GLOBAL_MULTIPLIER, "1.5"));
 
+            switch (State)
+            {
+                case MoralState.Idle:
+                    break;
+                case MoralState.Raising:
+                    if(MoralLevel < 100)
+                    {
+                        MoralLevel += ActiveFunPlace.MoralRaise * globalMultiplier;
+                        ActiveFunPlace.MoralTicks++;
+                    }
+                    break;
+                case MoralState.Decreasing:
+                    if (MoralLevel > 0f)
+                    {
+                        float moralFactor = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.FACTOR, Helpers.MoralBarConfig.FACTOR_DEFAULT));
+                        MoralLevel -= moralFactor * globalMultiplier;
+                    }
+                    else if (Convert.ToBoolean(Config.Get(Helpers.MoralBarConfig.DEATH, "true")))
+                    {
+                        CurrentHealth += 0.01f;
+                        if (CurrentHealth > 1f)
+                        {
+                            if (playerPed.Health > 51)
+                            {
+                                playerPed.Health = playerPed.Health - 1;
+                                CurrentHealth = 0f;
+                            }
+                            else
+                            {
+                                playerPed.Health = -1;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void HandleMoralState(bool isPlayerNearFunPlace)
+        {
             if (isPlayerNearFunPlace)
             {
-                if (!FunPlaceEntered)
+                if (State == MoralState.Decreasing)
                 {
-                    Screen.ShowNotification("Entering fun place.");
-                    FunPlaceEntered = true;
-                    FunPlaceExited = false;
+                    Screen.ShowNotification(Config.Get(Helpers.MoralBarConfig.ENTER_FUN_PLACE_TEXT, string.Empty));
+                    State = MoralState.Idle;
+                    return;
                 }
-                if (FunPlaceEntered && Game.IsControlJustReleased(0, Control.Pickup))
+                if (State == MoralState.Idle && Game.IsControlJustReleased(0, Control.Pickup))
                 {
-                    TriggerServerEvent("moralbar:addMoral", ActiveFunPlace.MoralRaise, ActiveFunPlace.MoralPrice);
+                    Screen.ShowNotification(Config.Get(Helpers.MoralBarConfig.HAVING_FUN_TEXT, string.Empty));
+                    State = MoralState.Raising;
+                    return;
+                }
+                if(State == MoralState.Raising && Game.IsControlJustReleased(0, Control.Pickup))
+                {
+                    Screen.ShowNotification(Config.Get(Helpers.MoralBarConfig.STOP_HAVING_FUN_TEXT,string.Empty));
+                    State = MoralState.Idle;
+                    PayForMoral();
+                    ActiveFunPlace.MoralTicks = 0;
+                    return;
                 }
             }
             else
             {
-                if(!FunPlaceExited)
+                if (State != MoralState.Decreasing)
                 {
-                    Screen.ShowNotification("Exiting fun place.");
-                    FunPlaceEntered = false;
-                    FunPlaceExited = true;
+                    Screen.ShowNotification(Config.Get(Helpers.MoralBarConfig.EXIT_FUN_PLACE_TEXT, string.Empty));
+                    State = MoralState.Decreasing;
+                    PayForMoral();
                     ActiveFunPlace = null;
-                }
-                if (MoralLevel > 0f)
-                {
-                    float moralFactor = Helpers.StrToFloat(Config.Get(Helpers.MoralBarConfig.FACTOR, Helpers.MoralBarConfig.FACTOR_DEFAULT));
-                    float globalMultiplier = Helpers.StrToFloat(Config.Get(Helpers.GenericConfig.GLOBAL_MULTIPLIER, Helpers.GenericConfig.GLOBAL_MULTIPLIER_DEFAULT));
-                    MoralLevel -= moralFactor * globalMultiplier;
-                }
-                else if (Convert.ToBoolean(Config.Get(Helpers.MoralBarConfig.DEATH, Helpers.MoralBarConfig.DEATH_DEFAULT)))
-                {
-                    CurrentHealth += 0.01f;
-                    if (CurrentHealth > 1f)
-                    {
-                        if (playerPed.Health > 51)
-                        {
-                            playerPed.Health = playerPed.Health - 1;
-                            CurrentHealth = 0f;
-                        }
-                        else
-                        {
-                            playerPed.Health = -1;
-                        }
-                    }
+                    return;
                 }
             }
+        }
+
+        private void PayForMoral()
+        {
+            float ticksFactor = ActiveFunPlace.MoralTicks / Convert.ToInt32(Config.Get(Helpers.MoralBarConfig.GLOBAL_RAISE_FACTOR, "0"));
+            TriggerServerEvent("moralbar:payMoral", ActiveFunPlace.MoralPrice, ticksFactor);
+            SaveMoral();
         }
 
         public void RenderUI(Ped playerPed)
@@ -157,24 +213,26 @@ namespace MoralBar
         {
             _tick++;
 
-            if ((_tick % 320 == 0) && !MoralInitialized)
-            {
-                TriggerServerEvent("moralbar:getMoral");
-                MoralInitialized = true;
-            }
-
             Hud.ReloadScaleformMovie();
             Ped playerPed = Game.PlayerPed;
-            ConsumeMoral(playerPed);
-            RenderUI(playerPed);
 
-            if ((_tick % 1280) == 0)
+            if (MoralInitialized)
             {
-                _tick = 0;
-                TriggerServerEvent("moralbar:saveMoral", MoralLevel);
-            }
+                ConsumeMoral(playerPed);
+                RenderUI(playerPed);
 
+                if ((_tick % SaveFrequency) == 0 && (State == MoralState.Decreasing || State == MoralState.Idle))
+                {
+                    _tick = 0;
+                    SaveMoral();
+                }
+            }
             await Task.FromResult(0);
+        }
+
+        private void SaveMoral()
+        {
+            TriggerServerEvent("moralbar:saveMoral", MoralLevel);
         }
     }
 }

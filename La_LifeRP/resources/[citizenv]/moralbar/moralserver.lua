@@ -4,6 +4,7 @@ require "resources/mysql-async/lib/function"
 RegisterServerEvent("moralbar:saveMoral")
 RegisterServerEvent("moralbar:getMoral")
 RegisterServerEvent("moralbar:addMoral")
+RegisterServerEvent("moralbar:payMoral")
 
 AddEventHandler("moralbar:saveMoral", function(message)
 	TriggerEvent('es:getPlayerFromId', source, function(user)
@@ -12,7 +13,7 @@ AddEventHandler("moralbar:saveMoral", function(message)
 				if(result[1]) then
 					MySQL.Async.execute('UPDATE `user_moral` SET `moralLevel`=@moralLevel WHERE `identifier`=@id', {['@id'] = user:identifier,['@moralLevel'] = message})
 				else
-					MySQL.Async.execute('INSERT INTO `user_moral`(`identifier`, `moralLevel`) VALUES (@id,@moralLevel)', {['@id'] = user:identifier,['@moralLevel'] = message})
+					MySQL.Async.execute('INSERT INTO `user_moral`(`identifier`, `moralLevel`) VALUES (@id,@moralLevel)', {['@id'] = user:identifier,['@moralLevel'] = '100'})
 				end	
 			end)
 		else
@@ -23,6 +24,7 @@ end)
 
 AddEventHandler("moralbar:getMoral", function()
 	print("GetMoral")
+	print(source);
 	TriggerEvent('es:getPlayerFromId', source, function(user)
 		if (user) then
 			MySQL.Async.fetchAll('select * from user_moral where identifier=@id', {['@id']= user.identifier}, function(result)
@@ -30,8 +32,8 @@ AddEventHandler("moralbar:getMoral", function()
 					print(result[1].moralLevel)
 					TriggerClientEvent("moralbar:moralResult", source, result[1].moralLevel)
 				else
-					print("100")
-					TriggerClientEvent("moralbar:moralResult", source, "100")
+					print("Player moral not found. Returning 100.")
+					TriggerClientEvent("moralbar:moralResult", source, 100)
 				end	
 			end)
 		else
@@ -40,22 +42,13 @@ AddEventHandler("moralbar:getMoral", function()
 	end)
 end)
 
-AddEventHandler("moralbar:addMoral", function(amount, cost)
-	print("AddMoral")
+AddEventHandler("moralbar:payMoral", function(price, ticks)
+	print("payMoral")
 	TriggerEvent('es:getPlayerFromId', source, function(user)
 		if (user) then
-			local cost = round(amount)
-			user:removeMoney(cost)
-			MySQL.Async.fetchAll('select * from user_moral where identifier=@id', {['@id']= user.identifier}, function(result)
-				if(result[1]) then
-					MySQL.Async.execute('UPDATE `user_moral` SET `moralLevel`=@moralLevel WHERE `identifier`=@id', {['@id'] = user:identifier,['@moralLevel'] = message})
-				else
-					MySQL.Async.execute('INSERT INTO `user_moral`(`identifier`, `moralLevel`) VALUES (@id,@moralLevel)', {['@id'] = user:identifier,['@moralLevel'] = message})
-				end	
-			end)
+			user:removeMoney(price*ticks)
 		else
 			TriggerEvent("es:desyncMsg")
 		end
 	end)
 end)
-

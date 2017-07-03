@@ -35,19 +35,19 @@ namespace MoralBar
         {
             public const string FACTOR = "MoralFactor";
             public const string FACTOR_DEFAULT = "0.00030476";
+            public const string SAVE_FREQUENCY = "SaveFrequency";
             public const string CONFIG_FILE_NAME = "configmoral.ini";
             public const string DEATH = "DeathMoral";
-            public const string DEATH_DEFAULT = "true";
             public const string WARNING_LEVEL = "WarningLevel";
-            public const string WARNING_LEVEL_DEFAULT = "15";
             public const string FUNPLACES= "FunPlaces";
-            public const string FUNPLACES_DEFAULT = "(X:0,Y:0,Z:0)";
             public const string FUNPLACE_PRICE = "FunPlaceDefaultCost";
-            public const string FUNPLACE_PRICE_DEFAULT = "0";
             public const string FUNPLACE_RAISE = "FunPlaceDefaultRaise";
-            public const string FUNPLACE_RAISE_DEFAULT = "0";
             public const string FUNPLACE_WIDTH = "FunPlaceDefaultWidth";
-            public const string FUNPLACE_WIDTH_DEFAULT = "0";
+            public const string HAVING_FUN_TEXT = "HavingFunText";
+            public const string STOP_HAVING_FUN_TEXT = "StopHavingFunText";
+            public const string EXIT_FUN_PLACE_TEXT = "ExitFunPlaceText";
+            public const string ENTER_FUN_PLACE_TEXT = "EnterFunPlaceText";
+            public const string GLOBAL_RAISE_FACTOR = "GlobalRaiseFactor";
         }
         public static class HUDConfig
         {
@@ -70,8 +70,7 @@ namespace MoralBar
 
         public static class GenericConfig
         {
-            public const string GLOBAL_MULTIPLIER = "GlobalMultiplier";
-            public const string GLOBAL_MULTIPLIER_DEFAULT = "1.5";
+            public const string GLOBAL_MULTIPLIER = "GlobalDecreaseMultiplier";
             public const string INSTRUCTIONAL_BUTTONS = "instructional_buttons";
         }
     }
